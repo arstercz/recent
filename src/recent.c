@@ -88,8 +88,9 @@ void get_ts_format(char *descr)
         }
 
         fmt = strsep(&buf, "=");
+	
         if (!strcmp(fmt, descr)) {
-            char *re_ptr = strsep(&buf,"|");
+            char *re_ptr = strsep(&buf, "|");
             printd("regex '%s', fmt '%s'\n", re_ptr, buf);
             if (buf == NULL) {
                 printf("Error parsing timestamp format: '|' missing\n");
@@ -129,7 +130,7 @@ void get_ts_format(char *descr)
 
 time_t get_nearest_timestamp(char *file, off_t *pos, off_t min, off_t max, int direction)
 {
-    printd("get_nearest_timestamp pos %lu, min %lu, max %lu, dir %i\n", *pos, min, max, direction);
+    printd("\nget_nearest_timestamp pos %lu, min %lu, max %lu, dir %i\n", *pos, min, max, direction);
     struct tm ts;
     int rc;
     int ovector[30];
@@ -147,8 +148,8 @@ time_t get_nearest_timestamp(char *file, off_t *pos, off_t min, off_t max, int d
                 if (TS_FORMAT.has_tz) {
                     // if timestamp format contains timezone, convert ts to local time as far as mktime expects local time
                     // otherwise, do nothing, i.e. treat all timestamps in file given in local time
-                    ts.tm_sec = ts.tm_sec - ts.tm_gmtoff + local_gmtoff;
-                    ts.tm_gmtoff = local_gmtoff;
+                    ts.tm_sec = ts.tm_sec - ts.__tm_gmtoff + local_gmtoff;
+                    ts.__tm_gmtoff = local_gmtoff;
                 }
                 strftime(t, 100, "%F %T %z", &ts);
                 printd("match! ts: %s\n", t);
@@ -156,7 +157,9 @@ time_t get_nearest_timestamp(char *file, off_t *pos, off_t min, off_t max, int d
                 rest = NULL;
             }
         } else {
+	    //printf("line: %s\n", &file[*pos]);
             rest = strptime(&file[*pos], TS_FORMAT.format, &ts);
+            //printf("pos: %d, asctime:%s\n", *pos, asctime(&ts));
         }
 
         if (rest == NULL) {
@@ -248,7 +251,7 @@ int main(int argc, char *argv[])
     off_t next_ts_pos;
     time_t now = time(NULL);
     struct tm *tm_now = localtime(&now);
-    local_gmtoff = tm_now->tm_gmtoff;
+    local_gmtoff = tm_now->__tm_gmtoff;
     target_timestamp = now - seconds;
     unsigned iterations = 0;
 
