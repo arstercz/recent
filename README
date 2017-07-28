@@ -24,3 +24,14 @@ recent - это простая утилита, напоминающая собо
 --
 Migalin Danila <me@miga.me.uk>
 2015
+
+### log format note
+if your log begin with timestamp, then use the following format:
+```
+nginx=|[%d/%b/%Y:%T %z]
+```
+otherwise you can use the following format:
+```
+nginx=.*(\[\d{2}/\w{3}/\d{4}:\d{2}:\d{2}:\d{2}\s\+\d{4}\])|[%d/%b/%Y:%T %z]
+```
+`recent` will use pcre to match the time format.
