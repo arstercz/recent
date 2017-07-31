@@ -163,15 +163,27 @@ time_t get_nearest_timestamp(char *file, off_t *pos, off_t min, off_t max, int d
         }
 
         if (rest == NULL) {
+            off_t pos_old = *pos;
             *pos = find_newline(file, *pos, min, max, (direction > 0?1:-1)) + 1;
             if (*pos == 0) {
                 break;
+            }
+            // skip infinite loop when file[pos-1] is "\n", pos_old is equal to *pos
+            if (pos_old == *pos && direction < 0) {
+                if (*pos - 2 > min) *pos += -2; 
             }
         } else {
             if (ts.tm_year == 0) {
                 /* some moronic timestamp formats are missing year */
                 time_t now = time(NULL);
                 ts.tm_year = localtime(&now)->tm_year;
+            }
+            //skip to the end of the line, some pos maybe truncate the line.
+            if(file[*pos - 1] != '\n' && *pos - 1 > 0) {
+                *pos = find_newline(file, *pos, min, max, (direction > 0?1:-1)) + 1;
+                if (*pos == 0) {
+                    break;
+	        }
             }
             return mktime(&ts);
         }
